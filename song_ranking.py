@@ -253,6 +253,7 @@ def main():
         st.subheader(f"Your Rankings ({len(st.session_state.ranked_songs)} songs ranked)")
         
         if st.session_state.ranked_songs:
+            # Display songs directly without sorting functionality
             for idx, song in enumerate(st.session_state.ranked_songs):
                 col1, col2, col3 = st.columns([4, 2, 1])
                 with col1:
