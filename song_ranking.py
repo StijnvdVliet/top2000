@@ -190,7 +190,7 @@ def main():
                 color: #191414;
                 background-color: white;
                 height: 38px;
-                width: 80px !important;  /* Fixed width for number inputs */
+                width: 80px !important;
             }
             
             /* Success messages */
@@ -204,7 +204,7 @@ def main():
                 display: flex;
                 align-items: center;
                 gap: 1rem;
-                min-width: 0;  /* Allow columns to shrink */
+                min-width: 0;
             }
 
             /* Number input container */
@@ -212,7 +212,7 @@ def main():
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
-                min-width: 0;  /* Allow container to shrink */
+                min-width: 0;
             }
 
             /* Number input label */
@@ -220,9 +220,9 @@ def main():
                 margin-bottom: 0 !important;
                 font-size: 14px;
                 min-height: 0 !important;
-                white-space: nowrap;  /* Prevent label wrapping */
-                overflow: hidden;  /* Hide overflow */
-                text-overflow: ellipsis;  /* Show ellipsis for overflow */
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             /* Adjust width of number input wrapper */
@@ -249,6 +249,37 @@ def main():
 
     # Create two columns with [3, 2] ratio (60% - 40%)
     left_col, right_col = st.columns([3, 2])
+
+    with left_col:
+        st.subheader(f"Your Rankings ({len(st.session_state.ranked_songs)} songs ranked)")
+        
+        if st.session_state.ranked_songs:
+            for idx, song in enumerate(st.session_state.ranked_songs):
+                col1, col2, col3 = st.columns([4, 2, 1])
+                with col1:
+                    display_song(song, song['rank'])
+                with col2:
+                    new_rank = st.number_input(
+                        "",
+                        min_value=1,
+                        max_value=2000,
+                        value=song['rank'],
+                        key=f"rank_{song['id']}_{idx}",
+                        label_visibility="collapsed"
+                    )
+                    if new_rank != song['rank']:
+                        song['rank'] = new_rank
+                        st.session_state.ranked_songs = sorted(
+                            st.session_state.ranked_songs,
+                            key=lambda x: x['rank']
+                        )
+                        save_rankings(st.session_state.ranked_songs)
+                        st.rerun()
+                with col3:
+                    if st.button("Remove", key=f"remove_{song['id']}_{idx}"):
+                        st.session_state.ranked_songs.remove(song)
+                        save_rankings(st.session_state.ranked_songs)
+                        st.rerun()
 
     with right_col:
         st.subheader("Add Songs")
@@ -325,43 +356,16 @@ def main():
                             st.success(f"Song added at rank {rank}!")
                             st.rerun()
 
-    with left_col:
-        st.subheader(f"Your Rankings ({len(st.session_state.ranked_songs)} songs ranked)")
-        
-        if st.session_state.ranked_songs:
-            # Create sortable list
-            sorted_indices = sort_items(
-                [f"{song['full_name']} (Rank: {song['rank']})" for song in st.session_state.ranked_songs],
-                key="sortable_songs"
+    # Add export functionality
+    if st.session_state.ranked_songs:
+        if st.button("Export Rankings"):
+            df = pd.DataFrame(st.session_state.ranked_songs)
+            st.download_button(
+                label="Download Rankings",
+                data=df.to_csv(index=False),
+                file_name="my_top_2000.csv",
+                mime="text/csv"
             )
-            
-            # Update rankings if order changed
-            if sorted_indices != list(range(len(st.session_state.ranked_songs))):
-                # Reorder the songs list
-                st.session_state.ranked_songs = [
-                    st.session_state.ranked_songs[i] for i in sorted_indices
-                ]
-                
-                # Update ranks
-                for idx, song in enumerate(st.session_state.ranked_songs):
-                    song['rank'] = idx + 1
-                
-                save_rankings(st.session_state.ranked_songs)
-                st.rerun()
-
-        else:
-            st.write("No songs ranked yet. Add songs from the search or suggestions!")
-
-        # Add export functionality
-        if st.session_state.ranked_songs:
-            if st.button("Export Rankings"):
-                df = pd.DataFrame(st.session_state.ranked_songs)
-                st.download_button(
-                    label="Download Rankings",
-                    data=df.to_csv(index=False),
-                    file_name="my_top_2000.csv",
-                    mime="text/csv"
-                )
 
 if __name__ == "__main__":
     main() 
