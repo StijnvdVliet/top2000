@@ -6,7 +6,6 @@ import json
 import os
 import time
 from datetime import datetime
-from streamlit_sortables import sort_items
 
 def initialize_spotify():
     return spotipy.Spotify(auth_manager=SpotifyOAuth(
