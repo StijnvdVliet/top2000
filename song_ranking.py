@@ -10,9 +10,9 @@ from streamlit_sortables import sort_items
 
 def initialize_spotify():
     return spotipy.Spotify(auth_manager=SpotifyOAuth(
-        client_id='36e185412827423f897dfa861decde3b',
-        client_secret='105e7b7440e94507b346c64a04267186',
-        redirect_uri='http://localhost:8501',  # Streamlit default port
+        client_id=st.secrets["spotify"]["client_id"],
+        client_secret=st.secrets["spotify"]["client_secret"],
+        redirect_uri=st.secrets["spotify"]["redirect_uri"],
         scope='user-top-read user-library-read user-read-recently-played playlist-read-private'
     ))
 
